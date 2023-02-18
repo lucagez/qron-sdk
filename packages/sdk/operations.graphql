@@ -1,0 +1,160 @@
+fragment TinyProps on TinyJob {
+  id
+  name
+  expr
+  run_at
+  last_run_at
+  start_at
+  timeout
+  created_at
+  executor
+  state
+  status
+  meta
+  retries
+  execution_amount
+}
+
+fragment SearchJobsByMetaResult on SearchJobsByMetaResult {
+  total
+  jobs {
+    ...TinyProps
+  }
+}
+
+fragment AccessToken on AccessToken {
+	id
+	token
+	owner
+	expires_at
+	created_at
+	name
+}
+
+mutation createToken($name: String!) {
+  createToken(name: $name)
+}
+  
+mutation listTokens {
+  listTokens {
+    ...AccessToken
+  }
+}
+  
+mutation revokeToken($id: String!) {
+  revokeToken(id: $id)
+}
+  
+mutation revokeAllTokens {
+  revokeAllTokens
+}
+
+mutation validateExprFormat($expr: String!) {
+  validateExprFormat(expr: $expr)
+}
+
+query listActiveQueues {
+  listActiveQueues
+}
+
+query countTotalJobs {
+  countTotalJobs
+}
+
+query searchJobs($executor: String!, $args: QueryJobsArgs!) {
+  searchJobs(executor: $executor, args: $args) {
+    ...TinyProps
+  }
+}
+
+query searchJobsByMeta($executor: String!, $args: QueryJobsMetaArgs!) {
+  searchJobsByMeta(executor: $executor, args: $args) {
+    ...SearchJobsByMetaResult
+  }
+  listActiveQueues
+  countTotalJobs
+}
+
+query queryJobByName($executor: String!, $name: String!) {
+  queryJobByName(executor: $executor, name: $name) {
+    ...TinyProps
+  }
+}
+
+query queryJobByID($executor: String!, $id: ID!) {
+  queryJobByID(executor: $executor, id: $id) {
+    ...TinyProps
+  }
+}
+
+mutation createJob($executor: String!, $args: CreateJobArgs!) {
+  createJob(executor: $executor, args: $args) {
+    ...TinyProps
+  }
+}
+
+mutation updateJobByName($executor: String!, $name: String!, $args: UpdateJobArgs!) {
+  updateJobByName(executor: $executor, name: $name, args: $args) {
+    ...TinyProps
+  } 
+}
+
+mutation updateJobById($executor: String!, $id: ID!, $args: UpdateJobArgs!) {
+  updateJobById(executor: $executor, id: $id, args: $args) {
+    ...TinyProps
+  } 
+}
+
+mutation updateStateByID($executor: String!, $id: ID!, $state: String!) {
+  updateStateByID(executor: $executor, id: $id, state: $state) {
+    ...TinyProps
+  } 
+}
+
+mutation updateExprByID($executor: String!, $id: ID!, $expr: String!) {
+  updateExprByID(executor: $executor, id: $id, expr: $expr) {
+    ...TinyProps
+  } 
+}
+
+mutation deleteJobByName($executor: String!, $name: String!) {
+  deleteJobByName(executor: $executor, name: $name) {
+    ...TinyProps
+  } 
+}
+
+mutation deleteJobByID($executor: String!, $id: ID!) {
+  deleteJobByID(executor: $executor, id: $id) {
+    ...TinyProps
+  } 
+}
+
+mutation fetchForProcessing($executor: String!, $limit: Int! = 50) {
+  fetchForProcessing(executor: $executor, limit: $limit) {
+    ...TinyProps
+  }
+}
+
+mutation commitJobs($executor: String!, $commits: [CommitArgs!]!) {
+  commitJobs(executor: $executor, commits: $commits)
+}
+
+mutation failJobs($executor: String!, $commits: [CommitArgs!]!) {
+  failJobs(executor: $executor, commits: $commits)
+}
+
+mutation retryJobs($executor: String!, $commits: [CommitArgs!]!) {
+  retryJobs(executor: $executor, commits: $commits)
+}
+
+mutation stopJob($executor: String!, $id: ID!) {
+  stopJob(executor: $executor, id: $id) {
+    ...TinyProps
+  }
+}
+
+mutation restartJob($executor: String!, $id: ID!) {
+  restartJob(executor: $executor, id: $id) {
+    ...TinyProps
+  }
+}
