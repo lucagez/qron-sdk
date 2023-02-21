@@ -1,4 +1,4 @@
-//#!/usr/bin/env node
+#!/usr/bin/env node
 
 const tar = require('tar');
 const { spawn } = require('child_process');
