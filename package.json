@@ -4,12 +4,13 @@
   "private": true,
   "workspaces": [
     "apps/*",
+    "examples/*",
     "packages/*"
   ],
   "scripts": {
     "build": "turbo run build",
     "gen:sdk": "cd packages/sdk && npm run generate",
-    "dev": "turbo run dev --parallel",
+    "dev": "cd apps/qron-ui && npm run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

@@ -1,18 +1,43 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, tinyq } from 'sdk'
 
-export const createClient = (config: Config) => {
+export const createClient = (config: Config = {}) => {
   const handlers = new Map<string, RequestHandler>()
 
-  const client = _createClient(config)
+  let url = config.url || process.env['QRON_URL']
+  if (!url && process.env['NODE_ENV'] !== 'production') {
+    url = 'http://localhost:9876/api/graphql'
+  }
+  if (!url && process.env['NODE_ENV'] === 'production') {
+    url = 'https://qron.run/api/graphql'
+  }
+  
+  let publicUrl = config.publicUrl || process.env['PUBLIC_URL']
+  if (!publicUrl) {
+    throw new Error('missing public url. please set `PUBLIC_URL` env variable or set `publicUrl` in config')
+  }
+
+  let token = config.token || process.env['QRON_TOKEN']
+  if (!token && process.env['NODE_ENV'] === 'production') {
+    throw new Error('missing authentication token. please set it via `QRON_TOKEN` env variable or set `token` in config')
+  }
+
+  const client = _createClient({
+    ...config,
+    url,
+    publicUrl: `${publicUrl}/api/qron`,
+    token,
+    prod: process.env['NODE_ENV'] === 'production',
+  })
   const createQueue = <T>(queue: string, x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>) => {
     const q = client<T>(queue)
     const handler: RequestHandler = async ({ request }) => {
       try {
         const sig = request.headers.get('x-tinyq-sig')
-        console.log('[TINYQ:SIG]', sig)
+        // console.log('[TINYQ:SIG]', sig)
 
-        const req = await q.parse(await request.json(), sig || '')
+        const body = await request.json()
+        const req = await q.parse(body, sig || '')
         const res = await x(req)
 
         return new Response(res.dump(), {

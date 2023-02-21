@@ -1,0 +1,19 @@
+{
+  "name": "qron-dev",
+  "version": "0.1.0",
+  "description": "Install qron-dev releases for local development",
+  "main": "./index.js",
+  "bin": {
+    "qron-dev": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^3.3.0",
+    "tar": "^6.1.13"
+  }
+}

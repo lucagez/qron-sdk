@@ -9,22 +9,22 @@ import type { ManipulateType } from "dayjs"
 export type Config = {
   url?: string
   token?: string
+
+  // Public URL of the deployment.
+  // This is used by `qron` to send jobs
   publicUrl?: string
+
+  prod?: boolean
 }
 
-export const tinyq = (config?: Config) => {
-  const url = config?.url || 'default url'
-  const token = config?.token || process.env['TINYQ_TOKEN']
-
-  if (!token) {
-    throw new Error('missing authentication token. please set `TINYQ_TOKEN` env variable')
-  }
-
+// TODO: RENAME
+export const tinyq = (config: Config) => {
+  const url = config.url!
+  const token = config.token!
   const client = new GraphQLClient(url, {
     headers: {
-      'Authorization': token,
-      // TODO: update this
-      'x-owner': 'sveltekit-adapter-test',
+      'Authorization': token || 'dev',
+      'x-owner': 'dev'
     }
   })
   const sdk = getSdk(client)
@@ -38,7 +38,7 @@ export const tinyq = (config?: Config) => {
 }
 
 export type TinyRequest<T> = Omit<TinyJob, 'state'> & { 
-  state: T
+  state?: T
   
   retry: (state?: T) => Retry<T>
   fail: (state?: T) => Fail<T>
@@ -323,7 +323,7 @@ const createHandler = <T>(queue: string, config: Config) =>{
       // decrypt state + deserialize
       const state = JSON.parse(raw.state)
 
-      if (process.env['NODE_ENV'] === 'production') {
+      if (config.prod) {
         const valid = await verifySig(sig, config)
         if (!valid) {
           throw new Error('invalid signature')
@@ -361,22 +361,23 @@ export const createClient = (config: Config) => {
 }
 
 const spki = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzVir+oFLy31Zkl6ADf7D
-2dvPLFG+rdC5y1MCbd4Se4RcSNFZertlV7Obx72UMylEmd0QNZEdZr2x5ZFVPj+c
-WE9o1fHFkFyJ8sSRoUSYMwLM9AJdjgG5SaDguIfuWG7D1KB9u80zsIhOwl1pa+FF
-MQaB4oXA4FR8yS9uTLvkFCBsG63nF0u85CBIGG0PQu1SDsg5A7bDIZO+oiCB2ewv
-q/TWUnUnlkv2HnMMMGnUxWf8+38jFZXLnP27rXigSM4kU3vlsbt+maHQU99Yteuu
-S3un4xZ2QGaVEfrk1N94QPh/j9i/6yNRsJ2wBmTBwhHSfhCwvY/GSdmcJVebRJWC
-SwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw0KJGejdk2ry3g4SQIq5
+9ifQj1wl2lU2YjqYuB2echIVPPcPftajrNagQmnuULHKzIflggYXiOwpoD3F6JIF
+w9mExuLrX8etyEKZcDQWwl/vOXk4LCrVsVbqDjarTgOu2imYqNXtgHJ/pdCjR2SE
+kD+T8WlwaTS70JwwBKcIO4avatXcDV9E7xU6VpExIBerK2EzZBp20QdKw8emIfuh
+QyUTkeMyReX+Ufrps263IuJVGwAy4mK9U5kLO5jQe6sd87TYqNNgenRAhUxX6FKr
+lh1IggdGk1RO+Cm6OBlptUVdTWDCxz7z7PYwyIH4PxKtimHWpzE/65lCt/2YzP7I
++QIDAQAB
 -----END PUBLIC KEY-----`
 
 const verifySig = async (token: string, config: Config): Promise<boolean> => {
   try {
     const publicKey = await jose.importSPKI(spki, 'RS256')
     await jose.jwtVerify(token, publicKey, {
-      issuer: 'tinyq',
+      issuer: 'qron',
       audience: config.publicUrl,
       // TODO: Should match also with owner?
+      // to match with owner, split auth token
     })
     return true
   } catch (err) {
