@@ -1,5 +1,5 @@
 {
-  "name": "qron-dev",
+  "name": "@qron-run/qron-dev",
   "version": "0.1.0",
   "description": "Install qron-dev releases for local development",
   "main": "./index.js",
@@ -10,10 +10,19 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "lucagez",
+  "license": "MIT",
   "dependencies": {
     "node-fetch": "^3.3.0",
     "tar": "^6.1.13"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucagez/qron-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lucagez/qron-sdk/issues"
+  },
+  "homepage": "https://github.com/lucagez/qron-sdk#readme"
 }
