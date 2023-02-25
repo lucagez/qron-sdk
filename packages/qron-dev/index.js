@@ -62,16 +62,36 @@ async function main() {
     console.error('If the problem persists, please open an issue at:');
     console.error(' https://github.com/lucagez/qron/issues');
     console.error('');
-    console.error(e);
+    console.error('==========================================');
+    console.error(e.toString());
+    console.error('==========================================');
     process.exit(1);
   }
 
-  const child = spawn(binPath, process.argv.slice(2), {
-    stdio: 'inherit',
-  });
-  child.on('close', (code) => {
-    process.exit(code);
-  });
+  try {
+    const qron = spawn(binPath, process.argv.slice(2), {
+      stdio: 'inherit',
+    });
+    qron.on('close', (code) => {
+      process.exit(code);
+    });
+    process.on('SIGINT', () => {
+      qron.kill('SIGINT');
+    });
+  } catch (e) {
+    // force reinstall
+    fs.rmSync(binPath);
+
+    console.error('Uh oh, something went wrong while running qron-dev..');
+    console.error('The old binary has been deleted, try restarting the application.');
+    console.error('If the problem persists, please open an issue at:');
+    console.error(' https://github.com/lucagez/qron/issues');
+    console.error('');
+    console.error('==========================================');
+    console.error(e.toString());
+    console.error('==========================================');
+    process.exit(1);
+  }
 }
 
-main()
+main();
