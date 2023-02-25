@@ -1,6 +1,6 @@
 {
   "name": "@qron-run/qron-dev",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Install qron-dev releases for local development",
   "main": "./index.js",
   "bin": {
