@@ -1,5 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit'
-import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, tinyq } from '@qron-run/sdk'
+import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, qron } from '@qron-run/sdk'
 
 export const createClient = (config: Config = {}) => {
   const handlers = new Map<string, RequestHandler>()
@@ -33,8 +33,8 @@ export const createClient = (config: Config = {}) => {
     const q = client<T>(queue)
     const handler: RequestHandler = async ({ request }) => {
       try {
-        const sig = request.headers.get('x-tinyq-sig')
-        // console.log('[TINYQ:SIG]', sig)
+        const sig = request.headers.get('x-qron-sig')
+        // console.log('[QRON:SIG]', sig)
 
         const body = await request.json()
         const req = await q.parse(body, sig || '')
@@ -46,7 +46,7 @@ export const createClient = (config: Config = {}) => {
           }
         })
       } catch (error) {
-        console.error('[TINYQ:ERROR]', queue, error)
+        console.error('[QRON:ERROR]', queue, error)
         
         return new Response(JSON.stringify({ status: 'FAILURE' }), {
           headers: {
@@ -61,7 +61,7 @@ export const createClient = (config: Config = {}) => {
 
     return q 
   }
-  const sdk = tinyq(config)
+  const sdk = qron(config)
 
   const handlerWrapper: RequestHandler = async (event) => {
     const url = new URL(event.request.url)
@@ -74,7 +74,7 @@ export const createClient = (config: Config = {}) => {
     }
 
     if (!handler) {
-      console.error('[TINYQ:ERROR]', 'no handler found for', url.pathname)
+      console.error('[QRON:ERROR]', 'no handler found for', url.pathname)
       return new Response('Not Found', {
         status: 404
       })

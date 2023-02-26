@@ -18,8 +18,7 @@ export type Config = {
   prod?: boolean
 }
 
-// TODO: RENAME
-export const tinyq = (config: Config) => {
+export const qron = (config: Config) => {
   const url = config.url!
   const token = config.token!
   const client = new GraphQLClient(url, {
@@ -44,9 +43,7 @@ export type TinyRequest<T> = Omit<TinyJob, 'state'> & {
   retry: (state?: T) => Retry<T>
   fail: (state?: T) => Fail<T>
   commit: (state?: T) => Commit<T>
-
-  // TODO: Stop `status` does not exists
-  stop: (state?: T) => Stop<T>
+  pause: (state?: T) => Stop<T>
 }
 
 class TinyResponseBuilder<T> {
@@ -193,7 +190,7 @@ export class TinyRequestBuilder<T> {
       state = this.withState(state).request.state
     }
 
-    const client = tinyq(this.config)
+    const client = qron(this.config)
     const meta = JSON.stringify({
       url: `${this.config.publicUrl}/${this.queue}`,
       method: 'POST',
@@ -382,7 +379,7 @@ const verifySig = async (token: string, config: Config): Promise<boolean> => {
     })
     return true
   } catch (err) {
-    console.error('[TINYQ] invalid signature', err)
+    console.error('[QRON] invalid signature', err)
     return false
   }
 }
