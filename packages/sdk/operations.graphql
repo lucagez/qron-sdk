@@ -93,6 +93,10 @@ mutation createJob($executor: String!, $args: CreateJobArgs!) {
   }
 }
 
+mutation batchCreateJobs($executor: String!, $args: [CreateJobArgs!]!) {
+  batchCreateJobs(executor: $executor, args: $args)
+}
+
 mutation updateJobByName($executor: String!, $name: String!, $args: UpdateJobArgs!) {
   updateJobByName(executor: $executor, name: $name, args: $args) {
     ...TinyProps

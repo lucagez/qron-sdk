@@ -44,6 +44,7 @@ export type CreateJobArgs = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  batchCreateJobs: Array<Scalars['ID']>;
   commitJobs: Array<Scalars['ID']>;
   createJob: TinyJob;
   createToken: Scalars['String'];
@@ -62,6 +63,12 @@ export type Mutation = {
   updateJobByName: TinyJob;
   updateStateByID: TinyJob;
   validateExprFormat: Scalars['Boolean'];
+};
+
+
+export type MutationBatchCreateJobsArgs = {
+  args: Array<CreateJobArgs>;
+  executor: Scalars['String'];
 };
 
 
@@ -329,6 +336,14 @@ export type CreateJobMutationVariables = Exact<{
 
 export type CreateJobMutation = { __typename?: 'Mutation', createJob: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
+export type BatchCreateJobsMutationVariables = Exact<{
+  executor: Scalars['String'];
+  args: Array<CreateJobArgs> | CreateJobArgs;
+}>;
+
+
+export type BatchCreateJobsMutation = { __typename?: 'Mutation', batchCreateJobs: Array<string> };
+
 export type UpdateJobByNameMutationVariables = Exact<{
   executor: Scalars['String'];
   name: Scalars['String'];
@@ -539,6 +554,11 @@ export const CreateJobDocument = gql`
   }
 }
     ${TinyPropsFragmentDoc}`;
+export const BatchCreateJobsDocument = gql`
+    mutation batchCreateJobs($executor: String!, $args: [CreateJobArgs!]!) {
+  batchCreateJobs(executor: $executor, args: $args)
+}
+    `;
 export const UpdateJobByNameDocument = gql`
     mutation updateJobByName($executor: String!, $name: String!, $args: UpdateJobArgs!) {
   updateJobByName(executor: $executor, name: $name, args: $args) {
@@ -660,6 +680,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     createJob(variables: CreateJobMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<CreateJobMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<CreateJobMutation>(CreateJobDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'createJob', 'mutation');
+    },
+    batchCreateJobs(variables: BatchCreateJobsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<BatchCreateJobsMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BatchCreateJobsMutation>(BatchCreateJobsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'batchCreateJobs', 'mutation');
     },
     updateJobByName(variables: UpdateJobByNameMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateJobByNameMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateJobByNameMutation>(UpdateJobByNameDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateJobByName', 'mutation');

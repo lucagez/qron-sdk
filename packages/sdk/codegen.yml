@@ -1,6 +1,6 @@
 schema: 
-  - '../../../tinyq-change-name/graph/*.graphql'
-  - '../../../tinyq-change-name/tinyq-cloud/graph/*.graphql'
+  - '../../../qron/graph/*.graphql'
+  - '../../../qron/qron-cloud/graph/*.graphql'
 documents:
   - '*.graphql'
 generates:
