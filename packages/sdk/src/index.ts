@@ -1,4 +1,5 @@
-import { getSdk, TinyJob } from "./generated"
+import { getSdk } from "./generated"
+import type { TinyJob } from "./generated"
 import { GraphQLClient } from 'graphql-request'
 import dayjs from "dayjs"
 import * as jose from "jose"

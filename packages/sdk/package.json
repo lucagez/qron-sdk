@@ -1,10 +1,13 @@
 {
-  "name": "sdk",
-  "version": "1.0.0",
+  "name": "@qron-run/sdk",
+  "version": "0.0.1",
   "description": "",
-  "main": "src/sdk.ts",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "scripts": {
     "generate": "graphql-codegen",
+    "build": "tsup src/index.ts --dts --format cjs,esm --external graphql -d package --sourcemap && node build.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -20,12 +23,13 @@
     "@graphql-codegen/typescript-graphql-request": "^4.5.8",
     "@graphql-codegen/typescript-operations": "^2.5.10",
     "@graphql-codegen/typescript-resolvers": "^2.7.10",
+    "tsup": "^6.6.3",
     "typescript": "^4.9.4"
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",
     "dayjs": "^1.11.7",
-    "graphql": "^16.6.0",
-    "jose": "^4.11.2"
+    "jose": "^4.11.2",
+    "graphql-request": "^5.1.0"
   }
 }

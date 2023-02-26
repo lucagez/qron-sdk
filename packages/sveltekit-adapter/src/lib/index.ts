@@ -1,5 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit'
-import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, tinyq } from 'sdk'
+import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, tinyq } from '@qron-run/sdk'
 
 export const createClient = (config: Config = {}) => {
   const handlers = new Map<string, RequestHandler>()
