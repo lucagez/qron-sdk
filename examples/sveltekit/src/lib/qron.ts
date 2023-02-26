@@ -1,4 +1,4 @@
-import { createClient } from 'sveltekit-adapter'
+import { createClient } from '@qron-run/sveltekit'
 import { env } from '$env/dynamic/public'
 
 export const { createQueue, sdk, handler } = createClient({

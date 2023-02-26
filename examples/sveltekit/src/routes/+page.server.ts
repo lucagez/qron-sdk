@@ -6,6 +6,14 @@ export const actions: Actions = {
     const form = await request.formData()
     const name = form.get('name')
 
+    helloq.job.afterMinutes(1).schedule({
+      name: String(name),
+    })
+
+    helloq.cron.everyMinutes(1).schedule({
+      name: String(name),
+    })
+
     if (!name) {
       return {
         success: false,

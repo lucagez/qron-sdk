@@ -210,6 +210,11 @@ export class TinyRequestBuilder<T> {
 }
 
 export class Cron<T> extends TinyRequestBuilder<T> {
+  expr(raw: string) {
+    this.request.expr = raw
+    return this
+  }
+
   every(interval: number, unit: TimeUnit) {
     this.request.expr = `@every ${interval} ${unit}`
     return this

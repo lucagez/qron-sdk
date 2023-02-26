@@ -59,7 +59,12 @@ export const createClient = (config: Config = {}) => {
 
     handlers.set(queue, handler)
 
-    return q 
+    // RIPARTIRE QUI!<---
+    // - ensure only relevant exports are there
+    return {
+      cron: q.cron,
+      job: q.job,
+    }
   }
   const sdk = qron(config)
 
