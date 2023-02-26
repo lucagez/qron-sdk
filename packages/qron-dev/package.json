@@ -2,11 +2,13 @@
   "name": "@qron-run/qron-dev",
   "version": "0.1.4",
   "description": "Install qron-dev releases for local development",
+  "type": "module",
   "main": "./index.js",
   "bin": {
     "qron-dev": "./index.js"
   },
   "scripts": {
+    "build": "tsup src/index.ts --dts --format cjs,esm --external graphql -d package --sourcemap && node build.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,9 +16,9 @@
   "license": "MIT",
   "dependencies": {
     "node-fetch": "^3.3.0",
-    "tar": "^6.1.13"
+    "tar": "^6.1.13",
+    "yargs": "^17.7.1"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lucagez/qron-sdk.git"
@@ -24,5 +26,10 @@
   "bugs": {
     "url": "https://github.com/lucagez/qron-sdk/issues"
   },
-  "homepage": "https://github.com/lucagez/qron-sdk#readme"
+  "homepage": "https://github.com/lucagez/qron-sdk#readme",
+  "devDependencies": {
+    "@types/tar": "^6.1.4",
+    "@types/yargs": "^17.0.22",
+    "tsup": "^6.6.3"
+  }
 }
