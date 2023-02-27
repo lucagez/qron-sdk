@@ -25,12 +25,15 @@ export const createClient = (config: Config = {}) => {
   const client = _createClient({
     ...config,
     url,
+
+    // TODO: add support for custom paths via separate prop as it's confusing
     publicUrl: `${publicUrl}/api/qron`,
     token,
     prod: process.env['NODE_ENV'] === 'production',
   })
-  const createQueue = <T>(queue: string, x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>) => {
-    const q = client<T>(queue)
+
+  const createHandler = <T>(name: string, x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>) => {
+    const q = client<T>(name)
     const handler: RequestHandler = async ({ request }) => {
       try {
         const sig = request.headers.get('x-qron-sig')
@@ -46,7 +49,7 @@ export const createClient = (config: Config = {}) => {
           }
         })
       } catch (error) {
-        console.error('[QRON:ERROR]', queue, error)
+        console.error('[QRON:ERROR]', name, error)
         
         return new Response(JSON.stringify({ status: 'FAILURE' }), {
           headers: {
@@ -54,18 +57,28 @@ export const createClient = (config: Config = {}) => {
           }
         })
       }
-
     }
 
-    handlers.set(queue, handler)
+    handlers.set(name, handler)
 
     // RIPARTIRE QUI!<---
-    // - ensure only relevant exports are there
+    // - improve sdk api. add zod schema
     return {
       cron: q.cron,
       job: q.job,
     }
   }
+
+  const createQueue = <T>(name: string, x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>) => {
+    const { job } = createHandler(name, x)
+    return job
+  }
+
+  const createCron = <T>(name: string, x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>) => {
+    const { cron } = createHandler(name, x)
+    return cron
+  }
+
   const sdk = qron(config)
 
   const handlerWrapper: RequestHandler = async (event) => {
@@ -91,6 +104,7 @@ export const createClient = (config: Config = {}) => {
 
   return {
     createQueue,
+    createCron,
     sdk,
     handler: handlerWrapper,
   }
