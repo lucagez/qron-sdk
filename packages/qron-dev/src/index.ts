@@ -10,6 +10,7 @@ import type { CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import fetch from 'node-fetch';
 import path from 'path';
+import { qron } from '@qron-run/sdk';
 
 yargs(hideBin(process.argv))
   .command({
@@ -147,41 +148,58 @@ async function provision(force: boolean = false) {
     'utf8'
   ));
   const token = process.env['QRON_TOKEN'];
+  const publicUrl = process.env['PUBLIC_URL'];
 
   if (!token) {
     console.error('Please make sure you have a valid `QRON_TOKEN` set in your environment.');
     process.exit(1);
   }
 
-  const res = await fetch('https://qron.dev/api/provision', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': token,
-    },
-    body: JSON.stringify({
-      force,
-      jobs: pkg.qron || {},
-    }),
-  });
-
-  if (res.status === 401) {
-    console.error('Uh oh, something went wrong while provisioning cron jobs..');
-    console.error('Please make sure you have a valid `QRON_TOKEN` set in your environment.');
+  if (!publicUrl) {
+    console.error('Please make sure you have a valid `PUBLIC_URL` set in your environment.');
     process.exit(1);
   }
 
-  if (res.status === 200) {
+  const client = qron({
+    token,
+  })
+
+  const resolvedUrl = new URL(publicUrl);
+
+  // TODO: Add support for custom paths
+  resolvedUrl.pathname = '/api/qron';
+
+  const jobs = Object
+    .entries(pkg.qron || {})
+    .map(([queue, expr]) => {
+      if (!queue || !expr) {
+        console.error('Invalid cron job configuration. Queue name and expression are required.');
+        process.exit(1);
+      }
+      return {
+        queue: String(queue),
+        expr: String(expr),
+      }
+    });
+
+  const res = await client.provisionCronJobs({
+    force,
+    publicUrl: resolvedUrl.toString(),
+    cronJobs: jobs,
+  })
+
+  if (res.provisionCronJobs) {
     console.log('qron provisioning completed ⏰');
     process.exit(0);
   }
 
-  if (res.status !== 200) {
+  if (!res.provisionCronJobs) {
     console.error('Uh oh, something went wrong while provisioning cron jobs..');
     console.error('If the problem persists, please open an issue at:');
     console.error('');
     console.error('==========================================');
-    console.error(await res.text());
+    // TODO: Extract error from response
+    console.error(res);
     console.error('==========================================');
     process.exit(1);
   }

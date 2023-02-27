@@ -1,5 +1,5 @@
-import type { GraphQLClient } from 'graphql-request';
-import type * as Dom from 'graphql-request/dist/types.dom';
+import { GraphQLClient } from 'graphql-request';
+import * as Dom from 'graphql-request/dist/types.dom';
 import gql from 'graphql-tag';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -42,6 +42,11 @@ export type CreateJobArgs = {
   timeout?: InputMaybe<Scalars['Int']>;
 };
 
+export type CronJobInput = {
+  expr: Scalars['String'];
+  queue: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   batchCreateJobs: Array<Scalars['ID']>;
@@ -53,6 +58,7 @@ export type Mutation = {
   failJobs: Array<Scalars['ID']>;
   fetchForProcessing: Array<TinyJob>;
   listTokens: Array<AccessToken>;
+  provisionCronJobs: Scalars['Boolean'];
   restartJob: TinyJob;
   retryJobs: Array<Scalars['ID']>;
   revokeAllTokens: Scalars['Boolean'];
@@ -110,6 +116,13 @@ export type MutationFailJobsArgs = {
 export type MutationFetchForProcessingArgs = {
   executor: Scalars['String'];
   limit?: Scalars['Int'];
+};
+
+
+export type MutationProvisionCronJobsArgs = {
+  cronJobs: Array<CronJobInput>;
+  force?: InputMaybe<Scalars['Boolean']>;
+  publicUrl: Scalars['String'];
 };
 
 
@@ -254,6 +267,15 @@ export type TinyPropsFragment = { __typename?: 'TinyJob', id: string, name?: str
 export type SearchJobsByMetaResultFragment = { __typename?: 'SearchJobsByMetaResult', total: number, jobs: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> };
 
 export type AccessTokenFragment = { __typename?: 'AccessToken', id: string, token: string, owner: string, expires_at: any, created_at: any, name: string };
+
+export type ProvisionCronJobsMutationVariables = Exact<{
+  cronJobs: Array<CronJobInput> | CronJobInput;
+  publicUrl: Scalars['String'];
+  force?: InputMaybe<Scalars['Boolean']>;
+}>;
+
+
+export type ProvisionCronJobsMutation = { __typename?: 'Mutation', provisionCronJobs: boolean };
 
 export type CreateTokenMutationVariables = Exact<{
   name: Scalars['String'];
@@ -480,6 +502,11 @@ export const AccessTokenFragmentDoc = gql`
   name
 }
     `;
+export const ProvisionCronJobsDocument = gql`
+    mutation provisionCronJobs($cronJobs: [CronJobInput!]!, $publicUrl: String!, $force: Boolean = false) {
+  provisionCronJobs(cronJobs: $cronJobs, publicUrl: $publicUrl, force: $force)
+}
+    `;
 export const CreateTokenDocument = gql`
     mutation createToken($name: String!) {
   createToken(name: $name)
@@ -645,6 +672,9 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    provisionCronJobs(variables: ProvisionCronJobsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ProvisionCronJobsMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ProvisionCronJobsMutation>(ProvisionCronJobsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'provisionCronJobs', 'mutation');
+    },
     createToken(variables: CreateTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<CreateTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<CreateTokenMutation>(CreateTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'createToken', 'mutation');
     },

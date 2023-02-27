@@ -31,6 +31,10 @@ fragment AccessToken on AccessToken {
 	name
 }
 
+mutation provisionCronJobs($cronJobs: [CronJobInput!]!, $publicUrl: String!, $force: Boolean = false) {
+  provisionCronJobs(cronJobs: $cronJobs, publicUrl: $publicUrl, force: $force)
+}
+
 mutation createToken($name: String!) {
   createToken(name: $name)
 }
