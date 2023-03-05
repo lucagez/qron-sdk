@@ -59,6 +59,7 @@ export type Mutation = {
   fetchForProcessing: Array<TinyJob>;
   listTokens: Array<AccessToken>;
   provisionCronJobs: Scalars['Boolean'];
+  pushSchema: Scalars['Boolean'];
   restartJob: TinyJob;
   retryJobs: Array<Scalars['ID']>;
   revokeAllTokens: Scalars['Boolean'];
@@ -126,6 +127,12 @@ export type MutationProvisionCronJobsArgs = {
 };
 
 
+export type MutationPushSchemaArgs = {
+  jobId: Scalars['ID'];
+  schema: Scalars['String'];
+};
+
+
 export type MutationRestartJobArgs = {
   executor: Scalars['String'];
   id: Scalars['ID'];
@@ -184,11 +191,23 @@ export type MutationValidateExprFormatArgs = {
 export type Query = {
   __typename?: 'Query';
   countTotalJobs: Scalars['Int'];
+  getSchema: Scalars['String'];
+  lastUpdate: Scalars['Time'];
   listActiveQueues: Array<Scalars['String']>;
   queryJobByID: TinyJob;
   queryJobByName: TinyJob;
   searchJobs: Array<TinyJob>;
   searchJobsByMeta: SearchJobsByMetaResult;
+};
+
+
+export type QueryGetSchemaArgs = {
+  jobId: Scalars['ID'];
+};
+
+
+export type QueryLastUpdateArgs = {
+  executor: Scalars['String'];
 };
 
 
@@ -254,6 +273,7 @@ export type TinyJob = {
   state?: Maybe<Scalars['String']>;
   status: Scalars['String'];
   timeout?: Maybe<Scalars['Int']>;
+  updated_at: Scalars['Time'];
 };
 
 export type UpdateJobArgs = {
@@ -262,11 +282,33 @@ export type UpdateJobArgs = {
   timeout?: InputMaybe<Scalars['Int']>;
 };
 
-export type TinyPropsFragment = { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number };
+export type TinyPropsFragment = { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number };
 
-export type SearchJobsByMetaResultFragment = { __typename?: 'SearchJobsByMetaResult', total: number, jobs: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> };
+export type SearchJobsByMetaResultFragment = { __typename?: 'SearchJobsByMetaResult', total: number, jobs: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> };
 
 export type AccessTokenFragment = { __typename?: 'AccessToken', id: string, token: string, owner: string, expires_at: any, created_at: any, name: string };
+
+export type LastUpdateQueryVariables = Exact<{
+  executor: Scalars['String'];
+}>;
+
+
+export type LastUpdateQuery = { __typename?: 'Query', lastUpdate: any };
+
+export type GetSchemaQueryVariables = Exact<{
+  jobId: Scalars['ID'];
+}>;
+
+
+export type GetSchemaQuery = { __typename?: 'Query', getSchema: string };
+
+export type PushSchemaMutationVariables = Exact<{
+  jobId: Scalars['ID'];
+  schema: Scalars['String'];
+}>;
+
+
+export type PushSchemaMutation = { __typename?: 'Mutation', pushSchema: boolean };
 
 export type ProvisionCronJobsMutationVariables = Exact<{
   cronJobs: Array<CronJobInput> | CronJobInput;
@@ -324,7 +366,7 @@ export type SearchJobsQueryVariables = Exact<{
 }>;
 
 
-export type SearchJobsQuery = { __typename?: 'Query', searchJobs: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> };
+export type SearchJobsQuery = { __typename?: 'Query', searchJobs: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> };
 
 export type SearchJobsByMetaQueryVariables = Exact<{
   executor: Scalars['String'];
@@ -332,7 +374,7 @@ export type SearchJobsByMetaQueryVariables = Exact<{
 }>;
 
 
-export type SearchJobsByMetaQuery = { __typename?: 'Query', listActiveQueues: Array<string>, countTotalJobs: number, searchJobsByMeta: { __typename?: 'SearchJobsByMetaResult', total: number, jobs: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> } };
+export type SearchJobsByMetaQuery = { __typename?: 'Query', listActiveQueues: Array<string>, countTotalJobs: number, searchJobsByMeta: { __typename?: 'SearchJobsByMetaResult', total: number, jobs: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> } };
 
 export type QueryJobByNameQueryVariables = Exact<{
   executor: Scalars['String'];
@@ -340,7 +382,7 @@ export type QueryJobByNameQueryVariables = Exact<{
 }>;
 
 
-export type QueryJobByNameQuery = { __typename?: 'Query', queryJobByName: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type QueryJobByNameQuery = { __typename?: 'Query', queryJobByName: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type QueryJobByIdQueryVariables = Exact<{
   executor: Scalars['String'];
@@ -348,7 +390,7 @@ export type QueryJobByIdQueryVariables = Exact<{
 }>;
 
 
-export type QueryJobByIdQuery = { __typename?: 'Query', queryJobByID: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type QueryJobByIdQuery = { __typename?: 'Query', queryJobByID: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type CreateJobMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -356,7 +398,7 @@ export type CreateJobMutationVariables = Exact<{
 }>;
 
 
-export type CreateJobMutation = { __typename?: 'Mutation', createJob: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type CreateJobMutation = { __typename?: 'Mutation', createJob: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type BatchCreateJobsMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -373,7 +415,7 @@ export type UpdateJobByNameMutationVariables = Exact<{
 }>;
 
 
-export type UpdateJobByNameMutation = { __typename?: 'Mutation', updateJobByName: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type UpdateJobByNameMutation = { __typename?: 'Mutation', updateJobByName: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type UpdateJobByIdMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -382,7 +424,7 @@ export type UpdateJobByIdMutationVariables = Exact<{
 }>;
 
 
-export type UpdateJobByIdMutation = { __typename?: 'Mutation', updateJobById: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type UpdateJobByIdMutation = { __typename?: 'Mutation', updateJobById: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type UpdateStateByIdMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -391,7 +433,7 @@ export type UpdateStateByIdMutationVariables = Exact<{
 }>;
 
 
-export type UpdateStateByIdMutation = { __typename?: 'Mutation', updateStateByID: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type UpdateStateByIdMutation = { __typename?: 'Mutation', updateStateByID: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type UpdateExprByIdMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -400,7 +442,7 @@ export type UpdateExprByIdMutationVariables = Exact<{
 }>;
 
 
-export type UpdateExprByIdMutation = { __typename?: 'Mutation', updateExprByID: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type UpdateExprByIdMutation = { __typename?: 'Mutation', updateExprByID: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type DeleteJobByNameMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -408,7 +450,7 @@ export type DeleteJobByNameMutationVariables = Exact<{
 }>;
 
 
-export type DeleteJobByNameMutation = { __typename?: 'Mutation', deleteJobByName: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type DeleteJobByNameMutation = { __typename?: 'Mutation', deleteJobByName: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type DeleteJobByIdMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -416,7 +458,7 @@ export type DeleteJobByIdMutationVariables = Exact<{
 }>;
 
 
-export type DeleteJobByIdMutation = { __typename?: 'Mutation', deleteJobByID: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type DeleteJobByIdMutation = { __typename?: 'Mutation', deleteJobByID: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type FetchForProcessingMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -424,7 +466,7 @@ export type FetchForProcessingMutationVariables = Exact<{
 }>;
 
 
-export type FetchForProcessingMutation = { __typename?: 'Mutation', fetchForProcessing: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> };
+export type FetchForProcessingMutation = { __typename?: 'Mutation', fetchForProcessing: Array<{ __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number }> };
 
 export type CommitJobsMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -456,7 +498,7 @@ export type StopJobMutationVariables = Exact<{
 }>;
 
 
-export type StopJobMutation = { __typename?: 'Mutation', stopJob: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type StopJobMutation = { __typename?: 'Mutation', stopJob: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export type RestartJobMutationVariables = Exact<{
   executor: Scalars['String'];
@@ -464,7 +506,7 @@ export type RestartJobMutationVariables = Exact<{
 }>;
 
 
-export type RestartJobMutation = { __typename?: 'Mutation', restartJob: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
+export type RestartJobMutation = { __typename?: 'Mutation', restartJob: { __typename?: 'TinyJob', id: string, name?: string | null, expr: string, run_at: any, last_run_at?: any | null, start_at?: any | null, timeout?: number | null, created_at: any, updated_at: any, executor: string, state?: string | null, status: string, meta: string, retries: number, execution_amount: number } };
 
 export const TinyPropsFragmentDoc = gql`
     fragment TinyProps on TinyJob {
@@ -476,6 +518,7 @@ export const TinyPropsFragmentDoc = gql`
   start_at
   timeout
   created_at
+  updated_at
   executor
   state
   status
@@ -500,6 +543,21 @@ export const AccessTokenFragmentDoc = gql`
   expires_at
   created_at
   name
+}
+    `;
+export const LastUpdateDocument = gql`
+    query lastUpdate($executor: String!) {
+  lastUpdate(executor: $executor)
+}
+    `;
+export const GetSchemaDocument = gql`
+    query getSchema($jobId: ID!) {
+  getSchema(jobId: $jobId)
+}
+    `;
+export const PushSchemaDocument = gql`
+    mutation pushSchema($jobId: ID!, $schema: String!) {
+  pushSchema(jobId: $jobId, schema: $schema)
 }
     `;
 export const ProvisionCronJobsDocument = gql`
@@ -672,6 +730,15 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    lastUpdate(variables: LastUpdateQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<LastUpdateQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<LastUpdateQuery>(LastUpdateDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'lastUpdate', 'query');
+    },
+    getSchema(variables: GetSchemaQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetSchemaQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetSchemaQuery>(GetSchemaDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getSchema', 'query');
+    },
+    pushSchema(variables: PushSchemaMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<PushSchemaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<PushSchemaMutation>(PushSchemaDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'pushSchema', 'mutation');
+    },
     provisionCronJobs(variables: ProvisionCronJobsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ProvisionCronJobsMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<ProvisionCronJobsMutation>(ProvisionCronJobsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'provisionCronJobs', 'mutation');
     },

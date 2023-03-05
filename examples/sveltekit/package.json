@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-    "dev": "concurrently npm:dev:*",
+		"dev": "concurrently npm:dev:*",
 		"dev:app": "vite dev",
 		"dev:qron": "./qron",
 		"build": "vite build",
@@ -25,5 +25,8 @@
 		"typescript": "^4.9.3",
 		"vite": "^4.0.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"zod": "^3.20.6"
+	}
 }

@@ -7,6 +7,7 @@ fragment TinyProps on TinyJob {
   start_at
   timeout
   created_at
+  updated_at
   executor
   state
   status
@@ -30,6 +31,20 @@ fragment AccessToken on AccessToken {
 	created_at
 	name
 }
+
+# TODO: make http default executor
+
+query lastUpdate($executor: String!) {
+  lastUpdate(executor: $executor)
+}
+
+query getSchema($jobId: ID!) {
+  getSchema(jobId: $jobId)
+}
+
+mutation pushSchema($jobId: ID!, $schema: String!) {
+  pushSchema(jobId: $jobId, schema: $schema)
+} 
 
 mutation provisionCronJobs($cronJobs: [CronJobInput!]!, $publicUrl: String!, $force: Boolean = false) {
   provisionCronJobs(cronJobs: $cronJobs, publicUrl: $publicUrl, force: $force)

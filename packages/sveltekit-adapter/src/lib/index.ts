@@ -1,5 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, qron } from '@qron-run/sdk'
+import type { z } from 'zod'
 
 export const createClient = (config: Config = {}) => {
   const handlers = new Map<string, RequestHandler>()
@@ -27,13 +28,18 @@ export const createClient = (config: Config = {}) => {
     url,
 
     // TODO: add support for custom paths via separate prop as it's confusing
-    publicUrl: `${publicUrl}/api/qron`,
+    // publicUrl: `${publicUrl}/api/qron`,
+    publicUrl,
     token,
     prod: process.env['NODE_ENV'] === 'production',
   })
 
-  const createHandler = <T>(name: string, x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>) => {
-    const q = client<T>(name)
+  const createHandler = <T extends z.ZodTypeAny = z.ZodAny>(
+    name: string, 
+    x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>,
+    schema?: T
+  ) => {
+    const q = client<T>(name, schema)
     const handler: RequestHandler = async ({ request }) => {
       try {
         const sig = request.headers.get('x-qron-sig')
@@ -61,21 +67,27 @@ export const createClient = (config: Config = {}) => {
 
     handlers.set(name, handler)
 
-    // RIPARTIRE QUI!<---
-    // - improve sdk api. add zod schema
     return {
       cron: q.cron,
       job: q.job,
     }
   }
 
-  const createQueue = <T>(name: string, x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>) => {
-    const { job } = createHandler(name, x)
+  const createQueue = <T extends z.ZodTypeAny = z.ZodAny>(
+    name: string, 
+    x: (req: TinyRequest<z.infer<T>>) => Promise<Commit<z.infer<T>> | Stop<z.infer<T>> | Fail<z.infer<T>> | Retry<z.infer<T>>>, 
+    schema?: T
+  ) => {
+    const { job } = createHandler(name, x, schema)
     return job
   }
 
-  const createCron = <T>(name: string, x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>) => {
-    const { cron } = createHandler(name, x)
+  const createCron = <T extends z.ZodTypeAny = z.ZodAny>(
+    name: string, 
+    x: (req: TinyRequest<z.infer<T>>) => Promise<Commit<z.infer<T>> | Stop<z.infer<T>> | Fail<z.infer<T>> | Retry<z.infer<T>>>, 
+    schema?: T
+  ) => {
+    const { cron } = createHandler(name, x, schema)
     return cron
   }
 

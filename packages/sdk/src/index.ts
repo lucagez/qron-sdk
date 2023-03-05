@@ -4,6 +4,8 @@ import { GraphQLClient } from 'graphql-request'
 import dayjs from "dayjs"
 import * as jose from "jose"
 import type { ManipulateType } from "dayjs"
+import { z } from "zod"
+import zodToJsonSchema from "zod-to-json-schema";
 
 // TODO: ID are strings. Should modify that
 // https://github.com/dotansimha/graphql-code-generator/issues/688#issuecomment-439358697
@@ -38,7 +40,7 @@ export const qron = (config: Config) => {
 }
 
 export type TinyRequest<T> = Omit<TinyJob, 'state'> & { 
-  state?: T
+  state: T
   
   retry: (state?: T) => Retry<T>
   fail: (state?: T) => Fail<T>
@@ -58,7 +60,6 @@ class TinyResponseBuilder<T> {
     return this
   }
 
-  // TODO: Should have `dump` method that serialize + encrypt
   dump() {
     return JSON.stringify({
       ...this.request,
@@ -148,18 +149,23 @@ export class Fail<T> extends TinyResponseBuilder<T> {
   }
 }
 
-export class TinyRequestBuilder<T> {
-  request = {} as TinyRequest<T>
+export class TinyRequestBuilder<T extends z.ZodTypeAny = z.ZodAny> {
+  request = {} as TinyRequest<z.infer<T>>
   config: Config
   queue: string
+  schema?: T
 
-  constructor(queue: string, config: Config) {
+  constructor(queue: string, config: Config, schema?: T) {
     this.queue = queue
     this.config = config
+    this.schema = schema
   }
 
   // TODO: serialize + encrypt
   withState(state: T) {
+    if (this.schema) {
+      state = this.schema.parse(state)
+    }
     this.request.state = state
     return this
   }
@@ -190,16 +196,20 @@ export class TinyRequestBuilder<T> {
       state = this.withState(state).request.state
     }
 
-    const client = qron(this.config)
-    const meta = JSON.stringify({
+    const meta = Object.assign({
       url: `${this.config.publicUrl}/${this.queue}`,
       method: 'POST',
       queue: this.queue,
-    })
+    }, this.schema 
+      ? { schema: zodToJsonSchema(this.schema) } 
+      : {}
+    )
+
+    const client = qron(this.config)
     return client.createJob({
       executor: 'http',
       args: {
-        meta,
+        meta: JSON.stringify(meta),
         state: JSON.stringify(this.request.state || {}),
         expr: this.request.expr,
         name: this.request.name || '',
@@ -209,7 +219,7 @@ export class TinyRequestBuilder<T> {
   }
 }
 
-export class Cron<T> extends TinyRequestBuilder<T> {
+export class Cron<T extends z.ZodTypeAny = z.ZodAny> extends TinyRequestBuilder<T> {
   expr(raw: string) {
     this.request.expr = raw
     return this
@@ -251,7 +261,7 @@ export class Cron<T> extends TinyRequestBuilder<T> {
   }
 }
 
-export class Job<T> extends TinyRequestBuilder<T> {
+export class Job<T extends z.ZodTypeAny = z.ZodAny> extends TinyRequestBuilder<T> {
   expr(raw: string) {
     this.request.expr = raw
     return this
@@ -298,23 +308,23 @@ export class Job<T> extends TinyRequestBuilder<T> {
   }
 }
 
-const createHandler = <T>(queue: string, config: Config) =>{
-  const requestUtil = (request: TinyRequest<T>) => {
+const createHandler = <T extends z.ZodTypeAny = z.ZodAny>(queue: string, config: Config, schema?: T) =>{
+  const requestUtil = (request: TinyRequest<z.infer<T>>) => {
     return {
       ...request,
-      retry: (state?: T) => {
+      retry: (state?: z.infer<T>) => {
         const _retry = new Retry(request)
         return state ? _retry.withState(state) : _retry
       },
-      commit: (state?: T) => {
+      commit: (state?: z.infer<T>) => {
         const _commit = new Commit(request)
         return state ? _commit.withState(state) : _commit
       },
-      stop: (state?: T) => {
+      stop: (state?: z.infer<T>) => {
         const _stop = new Stop(request)
         return state ? _stop.withState(state) : _stop
       },
-      fail: (state?: T) => {
+      fail: (state?: z.infer<T>) => {
         const _fail = new Fail(request)
         return state ? _fail.withState(state) : _fail
       },
@@ -324,7 +334,11 @@ const createHandler = <T>(queue: string, config: Config) =>{
   const hydrateRequest = async (raw: any, sig: string) => {
     try {
       // decrypt state + deserialize
-      const state = JSON.parse(raw.state)
+      let state = JSON.parse(raw.state)
+      if (schema) {
+        const parsed = schema.parse(state)
+        state = parsed
+      }
 
       if (config.prod) {
         const valid = await verifySig(sig, config)
@@ -352,14 +366,14 @@ const createHandler = <T>(queue: string, config: Config) =>{
     requestUtil,
     hydrateRequest,
     parse,
-    cron: new Cron<T>(queue, config),
-    job: new Job<T>(queue, config),
+    cron: new Cron<T>(queue, config, schema),
+    job: new Job<T>(queue, config, schema),
   }
 }
 
 export const createClient = (config: Config) => {
-  return <T>(queue: string) => {
-    return createHandler<T>(queue, config)
+  return <T extends z.ZodTypeAny = z.ZodAny>(name: string, schema?: T) => {
+    return createHandler<T>(name, config, schema)
   }
 }
 
