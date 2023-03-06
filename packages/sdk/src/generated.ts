@@ -192,7 +192,7 @@ export type Query = {
   __typename?: 'Query';
   countTotalJobs: Scalars['Int'];
   getSchema: Scalars['String'];
-  lastUpdate: Scalars['Time'];
+  lastUpdate?: Maybe<Scalars['Time']>;
   listActiveQueues: Array<Scalars['String']>;
   queryJobByID: TinyJob;
   queryJobByName: TinyJob;
@@ -293,7 +293,7 @@ export type LastUpdateQueryVariables = Exact<{
 }>;
 
 
-export type LastUpdateQuery = { __typename?: 'Query', lastUpdate: any };
+export type LastUpdateQuery = { __typename?: 'Query', lastUpdate?: any | null };
 
 export type GetSchemaQueryVariables = Exact<{
   jobId: Scalars['ID'];
