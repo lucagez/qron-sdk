@@ -15,7 +15,7 @@ export const actions: Actions = {
       }
     }
 
-    await helloq.expr('@after 1 second').schedule({
+    await helloq.asap().schedule({
       name: String(name),
     })
     console.log('scheduled job:', name)

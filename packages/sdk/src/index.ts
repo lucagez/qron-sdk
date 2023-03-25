@@ -45,7 +45,7 @@ export type TinyRequest<T> = Omit<TinyJob, 'state'> & {
   retry: (state?: T) => Retry<T>
   fail: (state?: T) => Fail<T>
   commit: (state?: T) => Commit<T>
-  pause: (state?: T) => Stop<T>
+  pause: (state?: T) => Pause<T>
 }
 
 class TinyResponseBuilder<T> {
@@ -133,7 +133,7 @@ export class Commit<T> extends TinyResponseBuilder<T> {
   }
 }
 
-export class Stop<T> extends TinyResponseBuilder<T> {
+export class Pause<T> extends TinyResponseBuilder<T> {
   constructor(request: TinyRequest<T>) {
     super(request)
 
@@ -277,6 +277,11 @@ export class Job<T extends z.ZodTypeAny = z.ZodAny> extends TinyRequestBuilder<T
     return this
   }
 
+  asap() {
+    this.request.expr = `@after 1s`
+    return this
+  }
+
   afterMinutes(interval: number) {
     this.request.expr = `@after ${interval} mins`
     return this
@@ -321,7 +326,7 @@ const createHandler = <T extends z.ZodTypeAny = z.ZodAny>(queue: string, config:
         return state ? _commit.withState(state) : _commit
       },
       stop: (state?: z.infer<T>) => {
-        const _stop = new Stop(request)
+        const _stop = new Pause(request)
         return state ? _stop.withState(state) : _stop
       },
       fail: (state?: z.infer<T>) => {

@@ -1,9 +1,8 @@
 import type { RequestHandler } from '@sveltejs/kit'
-import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, qron } from '@qron-run/sdk'
+import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, qron, type Job, type Cron } from '@qron-run/sdk'
 import type { z } from 'zod'
 
 export const createClient = (config: Config = {}) => {
-  const handlers = new Map<string, RequestHandler>()
 
   let url = config.url || process.env['QRON_URL']
   if (!url && process.env['NODE_ENV'] !== 'production') {
@@ -34,7 +33,7 @@ export const createClient = (config: Config = {}) => {
     prod: process.env['NODE_ENV'] === 'production',
   })
 
-  const createHandler = <T extends z.ZodTypeAny = z.ZodAny>(
+  const _create = <T extends z.ZodTypeAny = z.ZodAny>(
     name: string, 
     x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>,
     schema?: T
@@ -65,7 +64,16 @@ export const createClient = (config: Config = {}) => {
       }
     }
 
-    handlers.set(name, handler)
+    // Assign handler to both cron and job
+    // so they can be mounted later.
+    Object.assign(q.cron, {
+      handler,
+      name,
+    })
+    Object.assign(q.job, {
+      handler,
+      name,
+    })
 
     return {
       cron: q.cron,
@@ -78,7 +86,7 @@ export const createClient = (config: Config = {}) => {
     x: (req: TinyRequest<z.infer<T>>) => Promise<Commit<z.infer<T>> | Stop<z.infer<T>> | Fail<z.infer<T>> | Retry<z.infer<T>>>, 
     schema?: T
   ) => {
-    const { job } = createHandler(name, x, schema)
+    const { job } = _create(name, x, schema)
     return job
   }
 
@@ -87,13 +95,29 @@ export const createClient = (config: Config = {}) => {
     x: (req: TinyRequest<z.infer<T>>) => Promise<Commit<z.infer<T>> | Stop<z.infer<T>> | Fail<z.infer<T>> | Retry<z.infer<T>>>, 
     schema?: T
   ) => {
-    const { cron } = createHandler(name, x, schema)
+    const { cron } = _create(name, x, schema)
     return cron
   }
 
   const sdk = qron(config)
+  return {
+    createQueue,
+    createCron,
+    sdk,
+  }
+}
 
-  const handlerWrapper: RequestHandler = async (event) => {
+export const createHandler = (
+  ...args: Array<Job<any> | Cron<any>>
+): RequestHandler => {
+  const handlers = new Map<string, RequestHandler>()
+
+  for (const arg of args) {
+    // @ts-ignore
+    handlers.set(arg.name, arg.handler)
+  }
+
+  return async (event) => {
     const url = new URL(event.request.url)
     let handler: RequestHandler | undefined
 
@@ -111,13 +135,5 @@ export const createClient = (config: Config = {}) => {
     }
 
     return handler(event)
-  }
-
-
-  return {
-    createQueue,
-    createCron,
-    sdk,
-    handler: handlerWrapper,
   }
 }
