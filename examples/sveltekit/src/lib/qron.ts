@@ -2,7 +2,7 @@ import { createClient } from '@qron-run/sveltekit'
 import { env } from '$env/dynamic/public'
 import { z } from 'zod'
 
-export const { createQueue, sdk, handler } = createClient({
+export const { createQueue, sdk } = createClient({
   publicUrl: env.PUBLIC_URL,
 })
 
