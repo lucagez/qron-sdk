@@ -1,11 +1,11 @@
 {
-  "name": "@qron-run/qron-dev",
+  "name": "@qron-run/cli",
   "version": "0.1.4",
-  "description": "Install qron-dev releases for local development",
+  "description": "Install qron releases for local development",
   "type": "module",
   "main": "./index.js",
   "bin": {
-    "qron-dev": "./index.js"
+    "qron": "./index.js"
   },
   "scripts": {
     "build": "tsup src/index.ts --dts --format cjs,esm --external graphql -d package --sourcemap && node build.js",
