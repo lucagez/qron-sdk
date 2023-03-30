@@ -10,4 +10,8 @@ fs.writeFileSync('package/package.json', JSON.stringify({
     import: './index.js',
     require: './index.cjs'
   },
+  dependencies: {
+    ...pkg.dependencies,
+    '@qron-run/sdk': 'latest',
+  },
 }, null, 2));
