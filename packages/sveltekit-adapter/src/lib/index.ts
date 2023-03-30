@@ -12,10 +12,8 @@ export const createClient = (config: Config = {}) => {
     url = 'https://qron.run/api/graphql'
   }
   
+  // TODO: Investigate where it is better to fail in case there's no public url set
   let publicUrl = config.publicUrl || process.env['PUBLIC_URL']
-  if (!publicUrl) {
-    throw new Error('missing public url. please set `PUBLIC_URL` env variable or set `publicUrl` in config')
-  }
 
   // TODO: Investigate where it is better to fail in case there's no token
   let token = config.token || process.env['QRON_TOKEN']
