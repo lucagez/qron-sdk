@@ -1,6 +1,6 @@
 {
   "name": "@qron-run/cli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Install qron releases for local development",
   "type": "module",
   "main": "./index.js",
