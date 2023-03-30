@@ -1,6 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit'
-import { createClient as _createClient, Commit, Stop, type Config, type TinyRequest, Fail, Retry, qron, type Job, type Cron } from '@qron-run/sdk'
-import type { z } from 'zod'
+import { createClient as _createClient, Commit, Pause, type Config, type TinyRequest, Fail, Retry, qron, type Job, type Cron } from '@qron-run/sdk'
+// import type { z } from 'zod'
 
 export const createClient = (config: Config = {}) => {
 
@@ -17,11 +17,8 @@ export const createClient = (config: Config = {}) => {
     throw new Error('missing public url. please set `PUBLIC_URL` env variable or set `publicUrl` in config')
   }
 
+  // TODO: Investigate where it is better to fail in case there's no token
   let token = config.token || process.env['QRON_TOKEN']
-  if (!token && process.env['NODE_ENV'] === 'production') {
-    throw new Error('missing authentication token. please set it via `QRON_TOKEN` env variable or set `token` in config')
-  }
-
   const client = _createClient({
     ...config,
     url,
@@ -35,7 +32,7 @@ export const createClient = (config: Config = {}) => {
 
   const _create = <T extends z.ZodTypeAny = z.ZodAny>(
     name: string, 
-    x: (req: TinyRequest<T>) => Promise<Commit<T> | Stop<T> | Fail<T> | Retry<T>>,
+    x: (req: TinyRequest<T>) => Promise<Commit<T> | Pause<T> | Fail<T> | Retry<T>>,
     schema?: T
   ) => {
     const q = client<T>(name, schema)
@@ -83,7 +80,7 @@ export const createClient = (config: Config = {}) => {
 
   const createQueue = <T extends z.ZodTypeAny = z.ZodAny>(
     name: string, 
-    x: (req: TinyRequest<z.infer<T>>) => Promise<Commit<z.infer<T>> | Stop<z.infer<T>> | Fail<z.infer<T>> | Retry<z.infer<T>>>, 
+    x: (req: TinyRequest<z.infer<T>>) => Promise<Commit<z.infer<T>> | Pause<z.infer<T>> | Fail<z.infer<T>> | Retry<z.infer<T>>>, 
     schema?: T
   ) => {
     const { job } = _create(name, x, schema)
@@ -92,7 +89,7 @@ export const createClient = (config: Config = {}) => {
 
   const createCron = <T extends z.ZodTypeAny = z.ZodAny>(
     name: string, 
-    x: (req: TinyRequest<z.infer<T>>) => Promise<Commit<z.infer<T>> | Stop<z.infer<T>> | Fail<z.infer<T>> | Retry<z.infer<T>>>, 
+    x: (req: TinyRequest<z.infer<T>>) => Promise<Commit<z.infer<T>> | Pause<z.infer<T>> | Fail<z.infer<T>> | Retry<z.infer<T>>>, 
     schema?: T
   ) => {
     const { cron } = _create(name, x, schema)
@@ -137,3 +134,20 @@ export const createHandler = (
     return handler(event)
   }
 }
+
+import { z } from 'zod'
+
+const { createQueue } = createClient()
+
+const counterq = createQueue('counter', async ({ state, commit, retry, fail }) => {
+  console.log('Receiving request:', state)
+
+  if (state.count < 10) {
+    return retry({ count: state.count + 1 }).asap()
+  }
+
+  console.log('SUCCESS!')
+  return commit({ count: state.count + 1 })
+}, z.object({
+  count: z.number()
+}))

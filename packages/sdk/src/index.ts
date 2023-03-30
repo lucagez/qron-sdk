@@ -313,7 +313,7 @@ export class Job<T extends z.ZodTypeAny = z.ZodAny> extends TinyRequestBuilder<T
   }
 }
 
-const createHandler = <T extends z.ZodTypeAny = z.ZodAny>(queue: string, config: Config, schema?: T) =>{
+const _createClient = <T extends z.ZodTypeAny = z.ZodAny>(queue: string, config: Config, schema?: T) =>{
   const requestUtil = (request: TinyRequest<z.infer<T>>) => {
     return {
       ...request,
@@ -378,7 +378,7 @@ const createHandler = <T extends z.ZodTypeAny = z.ZodAny>(queue: string, config:
 
 export const createClient = (config: Config) => {
   return <T extends z.ZodTypeAny = z.ZodAny>(name: string, schema?: T) => {
-    return createHandler<T>(name, config, schema)
+    return _createClient<T>(name, config, schema)
   }
 }
 
