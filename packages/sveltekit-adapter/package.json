@@ -1,6 +1,6 @@
 {
 	"name": "@qron-run/sveltekit",
-	"version": "0.1.6",
+	"version": "0.1.7",
 	"main": "src/lib/index.ts",
 	"scripts": {
 		"dev": "vite dev",
