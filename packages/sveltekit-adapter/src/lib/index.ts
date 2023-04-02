@@ -1,11 +1,9 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import { createClient as _createClient, Commit, Pause, type Config, type TinyRequest, Fail, Retry, qron, type Job, type Cron } from '@qron-run/sdk'
 
-import { env } from '$env/dynamic/private'
-
 export const createClient = (config: Config = {}) => {
 
-  let url = config.url || env['QRON_URL']
+  let url = config.url || import.meta.env['QRON_URL']
   if (!url && import.meta.env.DEV) {
     url = 'http://localhost:9876/api/graphql'
   }
@@ -14,10 +12,10 @@ export const createClient = (config: Config = {}) => {
   }
   
   // TODO: Investigate where it is better to fail in case there's no public url set
-  let publicUrl = config.publicUrl || env['PUBLIC_URL']
+  let publicUrl = config.publicUrl || import.meta.env['PUBLIC_URL']
 
   // TODO: Investigate where it is better to fail in case there's no token
-  let token = config.token || env['QRON_TOKEN']
+  let token = config.token || import.meta.env['QRON_TOKEN']
   const client = _createClient({
     ...config,
     url,
