@@ -27,7 +27,11 @@ export const qron = (config: Config) => {
     headers: {
       'Authorization': token || 'dev',
       'x-owner': 'dev'
-    }
+    },
+
+    // graphql-request uses XHR by default, which does not not play
+    // well with edge environments (Cloudflare Workers, Vercel, etc)
+    fetch: typeof fetch !== 'undefined' ? fetch : undefined,
   })
   const sdk = getSdk(client)
 
