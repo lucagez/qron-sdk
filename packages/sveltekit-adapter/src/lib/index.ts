@@ -1,22 +1,23 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import { createClient as _createClient, Commit, Pause, type Config, type TinyRequest, Fail, Retry, qron, type Job, type Cron } from '@qron-run/sdk'
-// import type { z } from 'zod'
+
+import { env } from '$env/dynamic/private'
 
 export const createClient = (config: Config = {}) => {
 
-  let url = config.url || process.env['QRON_URL']
-  if (!url && process.env['NODE_ENV'] !== 'production') {
+  let url = config.url || env['QRON_URL']
+  if (!url && import.meta.env.DEV) {
     url = 'http://localhost:9876/api/graphql'
   }
-  if (!url && process.env['NODE_ENV'] === 'production') {
+  if (!url && import.meta.env.PROD) {
     url = 'https://qron.run/api/graphql'
   }
   
   // TODO: Investigate where it is better to fail in case there's no public url set
-  let publicUrl = config.publicUrl || process.env['PUBLIC_URL']
+  let publicUrl = config.publicUrl || env['PUBLIC_URL']
 
   // TODO: Investigate where it is better to fail in case there's no token
-  let token = config.token || process.env['QRON_TOKEN']
+  let token = config.token || env['QRON_TOKEN']
   const client = _createClient({
     ...config,
     url,
@@ -25,7 +26,7 @@ export const createClient = (config: Config = {}) => {
     // publicUrl: `${publicUrl}/api/qron`,
     publicUrl,
     token,
-    prod: process.env['NODE_ENV'] === 'production',
+    prod: import.meta.env.PROD,
   })
 
   const _create = <T extends z.ZodTypeAny = z.ZodAny>(
